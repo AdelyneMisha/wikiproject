@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki Search</title>
+</head>
+<body>
+    <h1>Wiki Search</h1>
+    <input type="text" name="query" placeholder="Enter search term" required>
+    <button id="SearchButton" onclick="searchWiki();">Search</button>
+
+    <div id="results"></div>
+
+    <script>
+        function searchWiki() {
+            const query = document.getElementsByName("query")[0].value;
+            const resultsContainer = document.getElementById("results"); 
+            resultsContainer.innerHTML = ''; 
+
+            if (!query) {
+                alert("Please enter a search term.");
+                return;
+            }
+            
+            const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const results = data.query.search;
+                    
+                    if (results.length === 0) {
+                        resultsContainer.textContent = "No results found.";
+                        return;
+                    }
+
+                    const heading = document.createElement("h2");
+                    heading.textContent = "Search Results";
+                    resultsContainer.appendChild(heading);
+
+                    const ul = document.createElement("ul");
+                    results.forEach(result => {
+                        const li = document.createElement("li");
+                        const link = document.createElement("a");
+                        link.href = `https://en.wikipedia.org/?curid=${result.pageid}`;
+                        link.target = "_blank"; 
+                        link.textContent = result.title;
+                        
+                        li.appendChild(link);
+                        ul.appendChild(li);
+                    });
+                    
+                    resultsContainer.appendChild(ul);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    resultsContainer.textContent = "An error occurred while fetching data. Check the console for details.";
+                });
+        }
+    </script>
+</body>
+</html>
